@@ -19,24 +19,17 @@ export default function Home() {
   const [publications, setPublications] = useState<WorkItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 从 API 获取数据
+  // 从静态 API 获取数据（构建时预生成）
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
 
-        // 获取最新工作
-        const worksResponse = await fetch('/api/works?type=works');
-        if (worksResponse.ok) {
-          const worksData = await worksResponse.json();
-          setLatestWorks(worksData);
-        }
-
-        // 获取论文
-        const pubsResponse = await fetch('/api/works?type=publications');
-        if (pubsResponse.ok) {
-          const pubsData = await pubsResponse.json();
-          setPublications(pubsData);
+        const res = await fetch('/api/works');
+        if (res.ok) {
+          const data = await res.json();
+          setLatestWorks(data.latestWorks ?? []);
+          setPublications(data.publications ?? []);
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
