@@ -45,6 +45,21 @@ export function parseMarkdownFile(filePath: string): ParsedContent {
   const fileContent = fs.readFileSync(filePath, 'utf-8');
   const { data, content } = matter(fileContent);
 
+  // 基础校验：没有必要的 frontmatter 时直接跳过该文件
+  if (
+    !data ||
+    typeof data.title !== 'string' ||
+    typeof data.titleEn !== 'string' ||
+    typeof data.date !== 'string' ||
+    !Array.isArray(data.tags) ||
+    (data.type !== 'work' && data.type !== 'publication') ||
+    (data.status !== 'ongoing' && data.status !== 'completed')
+  ) {
+    throw new Error(
+      `Invalid frontmatter in "${path.basename(filePath)}": title/titleEn/date/tags/type/status are required.`
+    );
+  }
+
   // 提取 id（从文件名）
   const id = path.basename(filePath, '.md');
 
@@ -59,10 +74,10 @@ export function parseMarkdownFile(filePath: string): ParsedContent {
     id,
     title: data.title as string,
     titleEn: data.titleEn as string,
-    authors: data.authors as string[],
-    institutions: data.institutions as string[],
+    authors: (Array.isArray(data.authors) ? data.authors : []) as string[],
+    institutions: (Array.isArray(data.institutions) ? data.institutions : []) as string[],
     date: data.date as string,
-    tags: data.tags as string[],
+    tags: (data.tags as string[]) ?? [],
     type: data.type as 'work' | 'publication',
     status: data.status as 'ongoing' | 'completed',
     description,
